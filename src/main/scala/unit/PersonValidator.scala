@@ -28,5 +28,13 @@ class PersonValidator @Inject()(){
       phoneNumber: matching regex: """^[0-9 ()+--]{1,24}$""" (use string.matches(regex))
       when all above valid call ANOTHER service to check that name registered against phone number matches
    */
-  def validate(personDetail: PersonDetail): Seq[String] = ???
+  def validate(personDetail: PersonDetail): Seq[String] = {
+    if(personDetail.firstName.isEmpty || personDetail.lastName.isEmpty) {
+      Seq("Error")
+    } else if (personDetail.firstName.length > 40 || personDetail.lastName.length > 40) {
+      Seq("Error2")
+    } else {
+      Nil
+    }
+  }
 }
