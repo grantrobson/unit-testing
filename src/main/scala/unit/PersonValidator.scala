@@ -15,12 +15,13 @@ trait PersonLookupService {
       { "firstName": "bill", "lastName": "bloggs", "phoneNumber": "27838727" }
     Returns true if phone number when looked up matches person name.
    */
-  def isValid(personDetails: JSObject): Boolean
+  def isValid(personDetails: PersonDetail): Boolean
 }
 
 case class PersonDetail(firstName: String, lastName: String, phoneNumber: String)
 
-class PersonValidator @Inject()(){
+class PersonValidator (personLookupService: PersonLookupService){
+  import PersonValidator._
   /*
     Return Nil if valid or else return Seq of errors if invalid.
     Validation rules:-
@@ -33,8 +34,19 @@ class PersonValidator @Inject()(){
       Seq("Error")
     } else if (personDetail.firstName.length > 40 || personDetail.lastName.length > 40) {
       Seq("Error2")
+    } else if (personDetail.phoneNumber.isEmpty) {
+      Seq("No phone number present")
+    } else if (!personDetail.phoneNumber.matches(phoneNumRegex)) {
+      Seq("Malformed phone number")
     } else {
-      Nil
+      personLookupService.isValid(personDetail) match {
+        case true => Nil
+        case false => Seq("Failed matching for payload")
+      }
     }
   }
+}
+
+object PersonValidator {
+  val phoneNumRegex = """^[0-9 ()+--]{1,24}$"""
 }
