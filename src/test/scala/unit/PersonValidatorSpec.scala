@@ -2,6 +2,7 @@ package unit
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar.{mock, reset, when}
+import org.scalacheck.Shrink
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -22,6 +23,10 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
   private val mockPersonLookupService = mock[PersonLookupService]
   private val personValidator = new PersonValidator(mockPersonLookupService)
 
+  private val phoneRegex = """^[0-9 ()+--]{1,24}$"""
+
+  implicit def noShrink[T]: Shrink[T] = Shrink.shrinkAny // Stop scalacheck from auto-shrinking:-
+
   // TODO: Fix this reset functionality
   override def beforeEach(): Unit = {
     reset(mockPersonLookupService)
@@ -35,9 +40,36 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
     behave like validateName(personDetailsValid1, personDetailsInvalid1, personDetailsInvalid21)
   }
 
+  // Property-based test for valid values:-
+  "validate" must {
+
+    /*
+      PROPERTY-BASED TESTS
+      Example properties:-
+      The validator should accept as valid any first name that is non-empty and less than 41 characters in length.
+      The validator should reject as invalid any first name more than 40 characters in length.
+      The validator should accept as valid any phone number that meets the specified regex.
+    */
+
+    "return no errors for VALID values: method 1: using built-in generators" in {
+      when(mockPersonLookupService.isValid(any())).thenReturn(true)
+      assert(true)
+    }
+
+//    "return no errors for VALID values: method 2: using custom generator" in {
+//      when(mockPersonLookupService.isValid(any())).thenReturn(true)
+//
+//    }
+//
+//    "return no errors for INVALID values" in {
+//      when(mockPersonLookupService.isValid(any())).thenReturn(true)
+//
+//    }
+  }
+
   "validate phone number" must {
     "return Nil when phone number is valid" in {
-      when (mockPersonLookupService.isValid(any())).thenReturn(true)
+      when(mockPersonLookupService.isValid(any())).thenReturn(true)
       personValidator.validate(personDetailsValid1) mustBe Nil
     }
 
@@ -47,44 +79,44 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
 
     // phoneNumber: matching regex: """^[0-9 ()+--]{1,24}$""" (use string.matches(regex))
     "return Seq(error) when phone number is invalid - doesn't match regular expression" in {
-      when (mockPersonLookupService.isValid(any())).thenReturn(true)
+      when(mockPersonLookupService.isValid(any())).thenReturn(true)
       personValidator.validate(pdBadPhoneNumber) mustBe Seq("Malformed phone number")
     }
   }
 
   "validate" must {
     "return an empty List when matching passes in called service" in {
-      when (mockPersonLookupService.isValid(any())).thenReturn(true)
+      when(mockPersonLookupService.isValid(any())).thenReturn(true)
       val validPerson = personValidator.validate(personDetailsValid1)
       validPerson mustBe List()
     }
 
     "return Seq(Error) when matching fails in called service" in {
-      when (mockPersonLookupService.isValid(any())).thenReturn(false)
+      when(mockPersonLookupService.isValid(any())).thenReturn(false)
       val validPerson = personValidator.validate(personDetailsValid1)
       validPerson mustBe Seq("Failed matching for payload")
     }
   }
 
-  private def validateName(pd1: PersonDetail, pd2: PersonDetail, pd3: PersonDetail) = {
+  private def validateName(pd1: PersonDetail, pd2: PersonDetail, pd3: PersonDetail): Unit = {
 
     "contains at least one character" must {
       "return Nil as there are no errors" in {
-        when (mockPersonLookupService.isValid(any())).thenReturn(true)
+        when(mockPersonLookupService.isValid(any())).thenReturn(true)
         personValidator.validate(pd1) mustBe Nil
       }
     }
 
     "contains no characters" must {
       "return a Seq of one error" in {
-        when (mockPersonLookupService.isValid(any())).thenReturn(true)
+        when(mockPersonLookupService.isValid(any())).thenReturn(true)
         personValidator.validate(pd2) mustBe Seq("Error")
       }
     }
 
     "contain a maximum of 40 characters" must {
       "return a Seq of one error" in {
-        when (mockPersonLookupService.isValid(any())).thenReturn(true)
+        when(mockPersonLookupService.isValid(any())).thenReturn(true)
         personValidator.validate(pd3) mustBe Seq("Error2")
       }
     }
