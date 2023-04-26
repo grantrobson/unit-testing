@@ -2,10 +2,11 @@ package unit
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar.{mock, reset, when}
-import org.scalacheck.Shrink
+import org.scalacheck.{Arbitrary, Gen, Shrink}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks.forAll
 
 class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach {
 
@@ -22,6 +23,23 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
   // Mockito stuff
   private val mockPersonLookupService = mock[PersonLookupService]
   private val personValidator = new PersonValidator(mockPersonLookupService)
+  private val personGeneratorValid: Arbitrary[PersonDetail] = Arbitrary(
+    for{
+      firstName <- Gen.alphaStr.suchThat(_.nonEmpty)
+      lastName <- Gen.alphaStr.suchThat(_.nonEmpty)
+    } yield {
+      PersonDetail(firstName.take(40), lastName.take(40), "12345678894")
+    }
+  )
+
+  private val personGeneratorInvalid: Arbitrary[PersonDetail] = Arbitrary(
+    for{
+      firstName <- Gen.alphaStr.suchThat(_.length > 40)
+      lastName <- Gen.alphaStr.suchThat(_.length > 40)
+    } yield {
+      PersonDetail(firstName, lastName, "abscdgd1234")
+    }
+  )
 
   private val phoneRegex = """^[0-9 ()+--]{1,24}$"""
 
@@ -53,18 +71,23 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
 
     "return no errors for VALID values: method 1: using built-in generators" in {
       when(mockPersonLookupService.isValid(any())).thenReturn(true)
-      assert(true)
+      forAll(personGeneratorValid.arbitrary){
+        personDetailGenerated =>
+          val person1 = personValidator.validate(personDetailGenerated)
+          val expectedPerson1 = Nil
+          person1 mustBe expectedPerson1
+      }
     }
 
-//    "return no errors for VALID values: method 2: using custom generator" in {
-//      when(mockPersonLookupService.isValid(any())).thenReturn(true)
-//
-//    }
-//
-//    "return no errors for INVALID values" in {
-//      when(mockPersonLookupService.isValid(any())).thenReturn(true)
-//
-//    }
+    "return errors for INVALID values" in {
+      when(mockPersonLookupService.isValid(any())).thenReturn(true)
+      forAll(personGeneratorInvalid.arbitrary){
+        invalidPersonDetailsGenerated =>
+          val person1 = personValidator.validate(invalidPersonDetailsGenerated)
+          val expectedPerson1 = Seq("Error2")
+          person1 mustBe expectedPerson1
+      }
+    }
   }
 
   "validate phone number" must {
