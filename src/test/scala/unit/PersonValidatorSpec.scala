@@ -9,7 +9,6 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
 
   implicit def noShrink[T]: Shrink[T] = Shrink.shrinkAny // Stop scalacheck from auto-shrinking
 
-  // TODO: Fix this reset functionality
   override def beforeEach(): Unit = {
   }
 }
