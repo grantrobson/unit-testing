@@ -29,22 +29,7 @@ class PersonValidator (personLookupService: PersonLookupService){
       phoneNumber: matching regex: """^[0-9 ()+--]{1,24}$""" (use string.matches(regex))
       when all above valid call ANOTHER service to check that name registered against phone number matches
    */
-  def validate(personDetail: PersonDetail): Seq[String] = {
-    if(personDetail.firstName.isEmpty || personDetail.lastName.isEmpty) {
-      Seq("Error")
-    } else if (personDetail.firstName.length > 40 || personDetail.lastName.length > 40) {
-      Seq("Error2")
-    } else if (personDetail.phoneNumber.isEmpty) {
-      Seq("No phone number present")
-    } else if (!personDetail.phoneNumber.matches(phoneNumRegex)) {
-      Seq("Malformed phone number")
-    } else {
-      personLookupService.isValid(personDetail) match {
-        case true => Nil
-        case false => Seq("Failed matching for payload")
-      }
-    }
-  }
+  def validate(personDetail: PersonDetail): Seq[String] = ???
 }
 
 object PersonValidator {
