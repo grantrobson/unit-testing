@@ -15,7 +15,7 @@ object AppDependencies {
     "org.scalacheck" %% "scalacheck" % "1.15.2",
     "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
     "io.github.wolfendale"         %% "scalacheck-gen-regexp"  % "1.1.0",
-    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "2.4.0",
     "com.github.alexarchambault" %% "scalacheck-shapeless_1.14" % "1.2.5"
   ).map(_ % Test)
 
