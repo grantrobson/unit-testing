@@ -27,7 +27,7 @@ class PersonValidator(personLookupService: PersonLookupService) {
     Validation rules:-
       firstName & lastName: non-empty, max length 40
       phoneNumber: matching regex: """^[0-9 ()+--]{1,24}$""" (use string.matches(regex))
-      when all above valid call ANOTHER service to check that name registered against phone number matches
+      when all above valid call PersonLookupService service to check that name registered against phone number matches
    */
   def validate(personDetail: PersonDetail): Seq[String] = ???
 }
