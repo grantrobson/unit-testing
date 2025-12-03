@@ -20,7 +20,7 @@ trait PersonLookupService {
 
 case class PersonDetail(firstName: String, lastName: String, phoneNumber: String)
 
-class PersonValidator(personLookupService: PersonLookupService) {
+class PersonValidator {
   
   /*
     Return Nil if valid or else return Seq of errors if invalid.
@@ -29,6 +29,10 @@ class PersonValidator(personLookupService: PersonLookupService) {
       phoneNumber: matching regex: """^[0-9 ()+--]{1,24}$""" (use string.matches(regex))
       when all above valid call PersonLookupService service to check that name registered against phone number matches
    */
-  def validate(personDetail: PersonDetail): Seq[String] = ???
+  def validate(personDetail: PersonDetail): Seq[String] = {
+    if (personDetail.firstName.length > 40 ) Seq("Name too long")
+    else Seq()
+  }
+
 }
 

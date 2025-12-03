@@ -23,4 +23,21 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
   override def beforeEach(): Unit = {
   }
 
+  " validate" must {
+    "accept non-empty first name" in {
+      val sutv = new PersonValidator
+      val pd = PersonDetail("Pablo", "", "")
+      sutv.validate(pd) mustBe Seq()
+
+    }
+    "return error if firstName length > 40" in {
+      val sutv = new PersonValidator
+      val pd = PersonDetail("a"*41, "", "")
+      sutv.validate(pd) mustBe Seq("Name too long")
+
+    }
+  }
+
+
+
 }
