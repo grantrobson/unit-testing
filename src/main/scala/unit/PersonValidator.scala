@@ -27,15 +27,22 @@ class PersonValidator(personLookUpService: PersonLookupService) {
    */
 
   def validate(personDetail: PersonDetail): Seq[String] = {
+
     val missingFirstNameSeq =
       if (personDetail.firstName.length > 40) Seq("Name too long")
       else if (personDetail.firstName.isEmpty) Seq("Must enter first name")
       else Seq()
+
+    val missingLastNameSeq =
+      if (personDetail.lastName.length > 40) Seq("Name too long")
+      else if (personDetail.lastName.isEmpty) Seq("Must enter last name")
+      else Seq()
+
     val invalidPhoneNumberSeq =
       if (!personLookUpService.isValid(personDetail)) Seq("Invalid phone number")
       else Seq()
 
-    missingFirstNameSeq ++ invalidPhoneNumberSeq
+    missingFirstNameSeq ++ invalidPhoneNumberSeq ++ missingLastNameSeq
   }
 
 }
