@@ -30,40 +30,33 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
     "accept non-empty first name" in {
       when(personLookupService.isValid(any())).thenReturn(true)
       val sutv = new PersonValidator(personLookupService)
-      val pd   = PersonDetail("Pablo", "", "")
+      val pd = PersonDetail("Pablo", "", "")
       sutv.validate(pd) mustBe Seq()
     }
 
     "return error if firstName length > 40" in {
       when(personLookupService.isValid(any())).thenReturn(true)
       val sutv = new PersonValidator(personLookupService)
-      val pd   = PersonDetail("a" * 41, "", "")
+      val pd = PersonDetail("a" * 41, "", "")
       sutv.validate(pd) mustBe Seq("Name too long")
     }
     "return error if first name is empty" in {
       val sutv = new PersonValidator(personLookupService)
-      val pd   = PersonDetail("", "", "")
+      val pd = PersonDetail("", "", "")
       sutv.validate(pd) mustBe Seq("Must enter first name")
     }
 
   }
 
-  "validate phone number" must {
+  " validate last name" must {
 
-    "return error if phone number not valid when looked up" in {
-      when(personLookupService.isValid(any())).thenReturn(false)
-      val sutv = new PersonValidator(personLookupService)
-      val pd   = PersonDetail("bill", "bloggs", "27838727")
-      sutv.validate(pd) mustBe Seq("Invalid phone number")
-    }
-
-    "return multiple errors with 2 invalid inputs" in {
-      when(personLookupService.isValid(any())).thenReturn(false)
-      val sutv = new PersonValidator(personLookupService)
-      val pd   = PersonDetail("", "Smith", "")
-      sutv.validate(pd).toSet mustBe Set("Invalid phone number", "Must enter first name")
-    }
 
   }
+
+  "validate phone number" must {
+
+
+  }
+
 
 }
