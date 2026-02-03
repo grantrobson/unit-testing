@@ -1,9 +1,5 @@
 package unit
 
-import netscape.javascript.JSObject
-
-import javax.inject.Inject
-
 /*
   Example to illustrate the following aspects of unit tests using Scala:-
     TDD, creating tests, mockito & property-based testing.
@@ -15,13 +11,13 @@ trait PersonLookupService {
       { "firstName": "bill", "lastName": "bloggs", "phoneNumber": "27838727" }
     Returns true if phone number when looked up matches person name.
    */
-  def isValid(personDetails: PersonDetail): Boolean
+  def isValid(personDetails: PersonDetail): Boolean = false
 }
 
 case class PersonDetail(firstName: String, lastName: String, phoneNumber: String)
 
-class PersonValidator(personLookupService: PersonLookupService) {
-  
+class PersonValidator(personLookUpService: PersonLookupService) {
+
   /*
     Return Nil if valid or else return Seq of errors if invalid.
     Validation rules:-
@@ -29,6 +25,24 @@ class PersonValidator(personLookupService: PersonLookupService) {
       phoneNumber: matching regex: """^[0-9 ()+--]{1,24}$""" (use string.matches(regex))
       when all above valid call PersonLookupService service to check that name registered against phone number matches
    */
-  def validate(personDetail: PersonDetail): Seq[String] = ???
-}
 
+  def validate(personDetail: PersonDetail): Seq[String] = {
+
+    val missingFirstNameSeq =
+      if (personDetail.firstName.length > 40) Seq("Name too long")
+      else if (personDetail.firstName.isEmpty) Seq("Must enter first name")
+      else Seq()
+
+    val missingLastNameSeq =
+      if (personDetail.lastName.length > 40) Seq("Name too long")
+      else if (personDetail.lastName.isEmpty) Seq("Must enter last name")
+      else Seq()
+
+    val invalidPhoneNumberSeq =
+      if (!personLookUpService.isValid(personDetail)) Seq("Invalid phone number")
+      else Seq()
+
+    missingFirstNameSeq ++ invalidPhoneNumberSeq ++ missingLastNameSeq
+  }
+
+}
