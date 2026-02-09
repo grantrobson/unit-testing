@@ -1,12 +1,13 @@
 package unit
-
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito.MockitoSugar.mock
-import org.scalacheck.Shrink
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar.mock
+
+
+
 
 class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach {
 
@@ -20,22 +21,22 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
    successful and unsuccessful test runs, to see where the boundary lies.
    */
 
-  implicit def noShrink[T]: Shrink[T] = Shrink.shrinkAny // Stop scalacheck from auto-shrinking when test fails
+//  implicit def noShrink[T]: Shrink[T] = Shrink.shrinkAny // Stop scalacheck from auto-shrinking when test fails
 
   val personLookupService: PersonLookupService = mock[PersonLookupService]
 
-  override def beforeEach(): Unit = {}
+  override def beforeEach(): Unit = {
+    when(personLookupService.isValid(any())).thenReturn(true)
+  }
 
   " validate first name" must {
     "accept non-empty first name" in {
-      when(personLookupService.isValid(any())).thenReturn(true)
       val sutv = new PersonValidator(personLookupService)
       val pd = PersonDetail("Pablo", "", "")
       sutv.validate(pd) mustBe Seq()
     }
 
     "return error if firstName length > 40" in {
-      when(personLookupService.isValid(any())).thenReturn(true)
       val sutv = new PersonValidator(personLookupService)
       val pd = PersonDetail("a" * 41, "", "")
       sutv.validate(pd) mustBe Seq("Name too long")
@@ -55,8 +56,94 @@ class PersonValidatorSpec extends AnyWordSpec with Matchers with BeforeAndAfterE
 
   "validate phone number" must {
 
+    "return error if phone number not valid when looked up" in {
+      when(personLookupService.isValid(any())).thenReturn(false)
+      val sutv = new PersonValidator(personLookupService)
+      val pd = PersonDetail("bill", "bloggs", "27838727")
+      sutv.validate(pd) mustBe Seq("Invalid phone number")
+    }
+
+    "return multiple errors with 2 invalid inputs" in {
+      when(personLookupService.isValid(any())).thenReturn(false)
+      val sutv = new PersonValidator(personLookupService)
+      val pd = PersonDetail("", "Smith", "")
+      sutv.validate(pd).toSet mustBe Set("Invalid phone number", "Must enter first name")
+    }
 
   }
+
+  // Property-based testing:-
+  /*
+  private val genPhoneNumber: Gen[String] = RegexpGen.from("[1-9]\\d?(,\\d{3})+")
+
+  private def genName: Gen[String] = Gen.alphaStr.suchThat(n => n.length <= 40 && n.nonEmpty)
+
+  // Above will run out of possibilities. So instead use below:-
+
+  private val genName: Gen[String] = for {
+    len <- Gen.choose(1, 40)
+    str <- Gen.listOfN(len, Gen.alphaChar).map(_.mkString)
+  } yield str
+
+  "person detail using property based testing" must {
+    "test correctly for valid values" in {
+      val sutv = new PersonValidator(personLookupService)
+
+      forAll(
+        genName -> "validFirstName",
+        genName -> "validLastName",
+        genPhoneNumber -> "validPhoneNumber"
+      ) { (fn, ln, pn) =>
+        val pd = PersonDetail(fn, ln, pn)
+        sutv.validate(pd) mustBe Seq()
+      }
+    }
+  }
+
+  private val personGeneratorValid: Gen[PersonDetail] = Arbitrary(
+    for {
+      firstName <- genName
+      lastName <- genName
+      phoneNumber <- genPhoneNumber
+    } yield {
+      PersonDetail(firstName, lastName, phoneNumber)
+    }
+  ).arbitrary
+
+  "person detail using property based testing and composite gen class" must {
+    "test correctly for valid values" in {
+      val sutv = new PersonValidator(personLookupService)
+
+      forAll(
+        personGeneratorValid -> "personDetail"
+      ) { pd =>
+        sutv.validate(pd) mustBe Seq()
+      }
+    }
+  }
+
+  private val personGeneratorInvalid: Gen[PersonDetail] = Arbitrary(
+    for {
+      firstName <- Gen.alphaStr.suchThat(_.length > 40)
+      lastName <- Gen.alphaStr.suchThat(_.length > 40)
+    } yield {
+      PersonDetail(firstName, lastName, "abscdgd1234")
+    }
+  ).arbitrary
+
+  "person name using property based testing" must {
+    "test correctly generating invalid data via composite generator" in {
+      val sutv = new PersonValidator(personLookupService)
+
+      forAll(
+        personGeneratorInvalid
+      ) { pd =>
+        sutv.validate(pd) mustBe Seq("Name too long")
+      }
+    }
+  }
+  */
+   
 
 
 }
